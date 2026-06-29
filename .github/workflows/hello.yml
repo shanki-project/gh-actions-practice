@@ -11,3 +11,11 @@ jobs:
     steps:
       - name: Say Hello
         run: echo "Hello Shanki, this is your first GitHub Actions run!"
+      - name: Say good bye
+        run: echo "bye the time is {uptime}"
+        
+  greet_again:
+    runs-on: ubuntu-latest
+    steps:
+        - name: see u next time
+          run: mkdir folder-test
