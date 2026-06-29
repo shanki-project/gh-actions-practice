@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Show the tag received from Job 1
-        run: echo "Job1 told me to use: ${{ needs.pull_image.outputs.image_tag }}"
+        run: echo "Job1 told me to use:" ${{ needs.pull_image.outputs.image_tag }}
 
       - name: Pull the same image again
         run: docker pull ${{ needs.pull_image.outputs.image_tag }}
