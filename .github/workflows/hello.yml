@@ -18,4 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
         - name: see u next time
-          run: mkdir folder-test
+          run: |
+           mkdir folder-test
+           ls
