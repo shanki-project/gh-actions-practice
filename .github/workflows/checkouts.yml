@@ -1,0 +1,10 @@
+name: checkouts
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+
+      - name: List files to prove repo is here
+        run: ls -la
