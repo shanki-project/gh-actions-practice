@@ -24,6 +24,6 @@ jobs:
            mkdir folder-test
            ls
            echo "Branch is ${{ github.ref }}" 
-           echo "Branch is ${{ github.actor }}" 
-           echo "Branch is ${{ github.sha }}" 
-           echo "Branch is ${{ github.repository }}" 
+           echo "username ${{ github.actor }}" 
+           echo "commit hash is ${{ github.sha }}" 
+           echo "Repo is ${{ github.repository }}" 
