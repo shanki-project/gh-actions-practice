@@ -14,4 +14,4 @@ jobs:
       - name: List files to prove repo is here
         run: |
          ls -la
-         cat hello.yml
+         cat .github/workflows/hello.yml
