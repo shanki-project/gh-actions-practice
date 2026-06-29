@@ -37,3 +37,5 @@ jobs:
 
       - name: Print my role
         run: echo "Shanki is a $MY_ENV"
+      - name: Print secret name
+        run: echo "The secret value is ${{ secrets.MYSEC }}"
