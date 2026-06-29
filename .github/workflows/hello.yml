@@ -12,8 +12,10 @@ jobs:
       - name: Say Hello
         run: echo "Hello Shanki, this is your first GitHub Actions run!"
       - name: Say good bye
-        run: echo "bye the time is {uptime}"
-        
+        run: |
+          echo "bye the time is {uptime}"
+          echo "Branch is ${{ github.ref }}" 
+
   greet_again:
     runs-on: ubuntu-latest
     steps:
@@ -21,3 +23,7 @@ jobs:
           run: |
            mkdir folder-test
            ls
+           echo "Branch is ${{ github.ref }}" 
+           echo "Branch is ${{ github.actor }}" 
+           echo "Branch is ${{ github.sha }}" 
+           echo "Branch is ${{ github.repository }}" 
