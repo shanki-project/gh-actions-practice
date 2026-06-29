@@ -1,0 +1,40 @@
+name: Three Job Chain Example
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      build_version: ${{ steps.version.outputs.value }}
+    steps:
+      - name: Simulate building app
+        run: echo "Building the app..."
+
+      - name: Generate version number
+        id: version
+        run: echo "value=v1.0.${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      test_result: ${{ steps.run_tests.outputs.status }}
+    steps:
+      - name: Show version received from build
+        run: echo "Testing version:" ${{ needs.build.outputs.build_version }}
+
+      - name: Run tests
+        id: run_tests
+        run: echo "status=passed" >> $GITHUB_OUTPUT
+
+  deploy:
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy using info from both previous jobs
+        run: |
+          echo "Deploying version: ${{ needs.build.outputs.build_version }}"
+          echo "Test result was: ${{ needs.test.outputs.test_result }}"
+          echo "Deployment complete!"
