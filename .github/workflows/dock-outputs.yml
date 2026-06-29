@@ -6,24 +6,27 @@ on:
 jobs:
   pull_image:
     runs-on: ubuntu-latest
+
     outputs:
       image_tag: ${{ steps.set_tag.outputs.tag }}
+
     steps:
       - name: Pull nginx image
         run: docker pull nginx:latest
 
       - name: Set image tag output
         id: set_tag
-        run: echo "tag=nginx:latest" >> $GITHUB_OUTPUT
+        run: echo "tag=nginx:latest" >> "$GITHUB_OUTPUT"
 
   run_container:
     needs: pull_image
     runs-on: ubuntu-latest
+
     steps:
       - name: Show the tag received from Job 1
         run: echo "Job1 told me to use: ${{ needs.pull_image.outputs.image_tag }}"
 
-      - name: Pull the same image again (fresh VM, remember?)
+      - name: Pull the same image again
         run: docker pull ${{ needs.pull_image.outputs.image_tag }}
 
       - name: Run nginx container
