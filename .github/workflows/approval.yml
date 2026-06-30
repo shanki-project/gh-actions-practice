@@ -1,0 +1,19 @@
+name: Approval Gate Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: testing
+        run: echo "sending the approval request to shanki-project"
+    
+  deploy:
+    needs: testing
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy step
+        run: echo "Deploying to production now..."
