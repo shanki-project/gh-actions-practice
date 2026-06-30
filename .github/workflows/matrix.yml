@@ -1,0 +1,15 @@
+name: Matrix Build Practice
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
+        environment: [staging, production]
+    steps:
+      - name: Show combination
+        run: echo "Running Node ${{ matrix.node-version }} in ${{ matrix.environment }}"
