@@ -1,0 +1,100 @@
+name: Full CI/CD Pipeline
+
+# TOPIC: Triggers (push to main, PR to main, or manual trigger)
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+# TOPIC: Env variables at workflow level (applies to all jobs)
+env:
+  APP_NAME: "my-demo-app"
+
+jobs:
+
+  # ---------- JOB 1: BUILD ----------
+  build:
+    runs-on: ubuntu-latest
+    # TOPIC: Job-level outputs (to pass small values to later jobs)
+    outputs:
+      build_version: ${{ steps.version.outputs.value }}
+    steps:
+      # TOPIC: actions/checkout (clone repo onto fresh VM)
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Show triggering user and branch
+        run: echo "Triggered by ${{ github.actor }} on ${{ github.ref_name }}"
+
+      - name: Simulate build
+        run: echo "Building ${{ env.APP_NAME }}..."
+
+      # TOPIC: Setting an output using a step id
+      - name: Generate version number
+        id: version
+        run: echo "value=v1.0.${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      # TOPIC: Create a file and upload as artifact
+      - name: Create build report
+        run: echo "Build ${{ steps.version.outputs.value }} completed" > build-report.txt
+
+      - name: Upload build report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-report
+          path: build-report.txt
+
+  # ---------- JOB 2: TEST (Matrix build) ----------
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    # TOPIC: Matrix - test across multiple "versions"
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
+    steps:
+      - name: Run tests
+        run: echo "Testing ${{ env.APP_NAME }} version ${{ needs.build.outputs.build_version }} on Node ${{ matrix.node-version }}"
+
+  # ---------- JOB 3: DEPLOY (conditional, secrets, SSH to EC2) ----------
+  deploy:
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    # TOPIC: Conditional execution - only deploy on main branch
+    if: github.ref == 'refs/heads/main' && success()
+    steps:
+      - name: Download build report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-report
+
+      - name: Show build report before deploying
+        run: cat build-report.txt
+
+      # TOPIC: Secrets + SSH into EC2
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull nginx:latest
+            docker run -d -p 8080:80 nginx:latest
+            docker ps
+
+      - name: Deployment success message
+        run: echo "Deployed version ${{ needs.build.outputs.build_version }} to production!"
+
+  # ---------- JOB 4: NOTIFY (always runs, even on failure) ----------
+  notify:
+    needs: [build, test, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Final status
+        run: echo "Pipeline finished. Deploy job result:" ${{ needs.deploy.result }}
