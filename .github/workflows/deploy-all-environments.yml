@@ -5,7 +5,7 @@ on:
 
 jobs:
   deploy_staging:
-    uses: ./.github/workflows/reusable-deploy.yml
+    uses: ./.github/workflows/reusable-workflow.yml
     with:
       app_name: "my-app"
       environment: "staging"
@@ -17,7 +17,7 @@ jobs:
 
   deploy_production:
     needs: deploy_staging
-    uses: ./.github/workflows/reusable-deploy.yml
+    uses: ./.github/workflows/reusable-workflow.yml
     with:
       app_name: "my-app"
       environment: "production"
