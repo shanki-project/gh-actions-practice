@@ -1,0 +1,28 @@
+name: Deploy All Environments
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_staging:
+    uses: ./.github/workflows/reusable-deploy.yml
+    with:
+      app_name: "my-app"
+      environment: "staging"
+      image_tag: "1.25"
+    secrets:
+      ec2_host: ${{ secrets.STAGING_EC2_HOST }}
+      ec2_user: ${{ secrets.STAGING_EC2_USER }}
+      ec2_key: ${{ secrets.STAGING_EC2_KEY }}
+
+  deploy_production:
+    needs: deploy_staging
+    uses: ./.github/workflows/reusable-deploy.yml
+    with:
+      app_name: "my-app"
+      environment: "production"
+      image_tag: "latest"
+    secrets:
+      ec2_host: ${{ secrets.PROD_EC2_HOST }}
+      ec2_user: ${{ secrets.PROD_EC2_USER }}
+      ec2_key: ${{ secrets.PROD_EC2_KEY }}
