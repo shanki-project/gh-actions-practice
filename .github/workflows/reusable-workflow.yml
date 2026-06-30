@@ -1,0 +1,43 @@
+name: Reusable Deploy Workflow
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      image_tag:
+        required: false
+        type: string
+        default: "latest"
+    secrets:
+      ec2_host:
+        required: true
+      ec2_user:
+        required: true
+      ec2_key:
+        required: true
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show what we're deploying
+        run: echo "Deploying ${{ inputs.app_name }} (tag: ${{ inputs.image_tag }}) to ${{ inputs.environment }}"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ec2_host }}
+          username: ${{ secrets.ec2_user }}
+          key: ${{ secrets.ec2_key }}
+          script: |
+            docker pull nginx:${{ inputs.image_tag }}
+            docker run -d -p 8080:80 nginx:${{ inputs.image_tag }}
