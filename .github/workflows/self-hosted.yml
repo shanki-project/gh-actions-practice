@@ -1,0 +1,67 @@
+name: Advanced Deploy Pipeline
+
+# TOPIC 5: workflow_dispatch inputs — form appears when you click "Run workflow"
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Which environment to deploy to?"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      image_tag:
+        description: "Docker image tag to deploy"
+        required: false
+        default: "latest"
+        type: string
+      dry_run:
+        description: "Dry run? (skip actual deploy)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+# TOPIC 1: Concurrency — only one deploy per environment at a time
+# If a new run starts for same environment, cancel the previous one
+concurrency:
+  group: deploy-${{ github.event.inputs.environment }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    # TOPIC 2: Self-hosted runner — job runs ON your EC2, not GitHub's VM
+    runs-on: self-hosted
+
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show deploy parameters
+        run: |
+          echo "Environment : ${{ github.event.inputs.environment }}"
+          echo "Image tag   : ${{ github.event.inputs.image_tag }}"
+          echo "Dry run     : ${{ github.event.inputs.dry_run }}"
+          echo "Triggered by: ${{ github.actor }}"
+
+      # TOPIC 5 + TOPIC 11 (conditionals): skip actual deploy if dry_run is true
+      - name: Deploy nginx
+        if: github.event.inputs.dry_run == 'false'
+        run: |
+          docker pull nginx:${{ github.event.inputs.image_tag }}
+          docker stop nginx-container || true
+          docker rm nginx-container || true
+          docker run -d --name nginx-container -p 8080:80 nginx:${{ github.event.inputs.image_tag }}
+
+      - name: Dry run notice
+        if: github.event.inputs.dry_run == 'true'
+        run: echo "Dry run mode — skipping actual deploy. Would have deployed nginx:${{ github.event.inputs.image_tag }}"
+
+      - name: Verify deployment
+        if: github.event.inputs.dry_run == 'false'
+        run: docker ps | grep nginx-container
